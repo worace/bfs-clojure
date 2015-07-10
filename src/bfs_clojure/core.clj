@@ -19,18 +19,25 @@
 
 (defn lines [str] (clojure.string/split str #"\n"))
 
+(def shifts {:north [-1 0] :west [0 -1] :east [1 0] :south [0 1]})
+(defn neighbors [coords]
+  "Turn x,y coord into set of shifted neighbor coords
+   e.g [0 0] -> #{[1 0] [0 1] [-1 0] [0 -1]}"
+  (into #{} (map vec
+                 (for [shift (vals shifts)]
+                   (map #(apply + %) (map vector coords shift))))))
+
+(defn graphed [coord-map]
+  (reduce (fn [cm [coords value]]
+            (assoc cm coords (into {:value value} {:neighbors (neighbors coords)})))
+          {}
+          coord-map))
+
 (defn parse-landscape [landscape-string]
-  (coord-map (coords (lines landscape-string))))
+  (graphed (coord-map (coords (lines landscape-string)))))
 
 (defn landscape-file [filename]
   (slurp (.getFile (clojure.java.io/resource filename))))
 
 (defn start-pos [ls-map]
   (first (first (filter (fn [pair] (= "S" (last pair))) ls-map))))
-
-(defn shift-coord [shift coord]
-  [(+ (get shift 0) (get coord 0)) (+ (get shift 1) (get coord 1))])
-
-(defn neighbors [coords]
-  (let [shifts [[0 -1] [-1 0] [1 0] [0 1]]]
-    (map (fn [pair] (apply shift-coord pair)) (map vector shifts (repeat coords)))))
