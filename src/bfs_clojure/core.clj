@@ -1,28 +1,26 @@
 (ns bfs-clojure.core)
 
-(defn parse-cols
-  ([row coord-map y-coord] (parse-cols row coord-map y-coord 0))
-  ([row coord-map y-coord x-coord]
-   (if (empty? row)
-     coord-map
-     (parse-cols
-       (rest row)
-       (assoc coord-map [x-coord y-coord] (str (first row)))
-       y-coord
-       (+ 1 x-coord)))))
+(defn coords [rows]
+  "take seq of strings representing map rows
+   and parse them into sequence of coordinate, position-value
+   tuples. e.g (([0 0] 'a') ([1 0] 'b'))"
+  (mapcat identity
+          (map-indexed (fn [y row]
+                         (map-indexed
+                          (fn [x char] [[x y] (str char)])
+                          row))
+                       rows)))
 
-(defn parse-rows
-  ([row-seq] (parse-rows row-seq {} 0))
-  ([row-seq coord-map y-coord]
-   (if (empty? row-seq)
-     coord-map
-     (parse-rows
-       (rest row-seq)
-       (parse-cols (first row-seq) coord-map y-coord)
-       (+ 1 y-coord)))))
+(defn coord-map [coords]
+  "take seq of coordinate-value tuples and return
+   map of [x y] -> 'value' coords. Use mapcat identity as
+   a 1-level flatten"
+  (apply hash-map (mapcat identity coords)))
+
+(defn lines [str] (clojure.string/split str #"\n"))
 
 (defn parse-landscape [landscape-string]
-  (parse-rows (clojure.string/split landscape-string #"\n")))
+  (coord-map (coords (lines landscape-string))))
 
 (defn landscape-file [filename]
   (slurp (.getFile (clojure.java.io/resource filename))))
@@ -36,8 +34,3 @@
 (defn neighbors [coords]
   (let [shifts [[0 -1] [-1 0] [1 0] [0 1]]]
     (map (fn [pair] (apply shift-coord pair)) (map vector shifts (repeat coords)))))
-
-(defn queue-neighbors [queue landscape coord]
-  (apply conj queue
-         (filter (fn [n] (not (= "#" (get landscape n))))
-                 (keys (select-keys landscape (neighbors coord))))))
