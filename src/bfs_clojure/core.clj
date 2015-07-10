@@ -17,7 +17,6 @@
    a 1-level flatten"
   (apply hash-map (mapcat identity coords)))
 
-(defn lines [str] (clojure.string/split str #"\n"))
 
 (def shifts {:north [-1 0] :west [0 -1] :east [1 0] :south [0 1]})
 (defn adj-coords [coords]
@@ -28,19 +27,42 @@
                    (map #(apply + %) (map vector coords shift))))))
 
 (defn neighbors [position landscape]
+  "Retrieve valid positions from landscape based on adjacent
+   coords of provided position. Removing nils solves positions at
+   edge of map."
   (filter (comp not nil?) (map landscape (position :adj))))
 
 (defn graphed [coord-map]
+  "Turn map of coord -> value to map with enriched values
+   containing :value and :adj keys. E.G:
+   {[0 0] 'a'} -> {[0 0] {:value 'a' :adj #{[1 0] [0 1]...}}}"
   (reduce (fn [cm [coords value]]
             (assoc cm coords (into {:value value} {:adj (adj-coords coords)})))
           {}
           coord-map))
 
+(defn landscape-file [filename]
+  "read string content of provided filename"
+  (slurp (.getFile (clojure.java.io/resource filename))))
+(defn lines [str] (clojure.string/split str #"\n"))
+
 (defn parse-landscape [landscape-string]
+  "Parse newline-delimited string representing a landscape
+   into map of [x y] coord to maps of positions containing
+   :value and :adj(acent coords)"
   (graphed (coord-map (coords (lines landscape-string)))))
 
-(defn landscape-file [filename]
-  (slurp (.getFile (clojure.java.io/resource filename))))
 
-(defn start-pos [ls-map]
-  (first (first (filter (fn [pair] (= "S" (last pair))) ls-map))))
+(defn find-value [value, landscape]
+  "Find position containing provided value in the landscape.
+   Using last to get the nested map out of the coord, map tuple
+   that we get from filtering on a hashmap."
+  (last (first (filter (fn [[coord pos]]
+                   (= value (pos :value)))
+                 landscape))))
+
+(defn path [start finish landscape]
+  "Search the landscape for a path from the start position
+   to finish position. Returns path as sequence of [x y] coord
+   pairs"
+  nil)
