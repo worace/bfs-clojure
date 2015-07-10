@@ -20,16 +20,19 @@
 (defn lines [str] (clojure.string/split str #"\n"))
 
 (def shifts {:north [-1 0] :west [0 -1] :east [1 0] :south [0 1]})
-(defn neighbors [coords]
+(defn adj-coords [coords]
   "Turn x,y coord into set of shifted neighbor coords
    e.g [0 0] -> #{[1 0] [0 1] [-1 0] [0 -1]}"
   (into #{} (map vec
                  (for [shift (vals shifts)]
                    (map #(apply + %) (map vector coords shift))))))
 
+(defn neighbors [position landscape]
+  (filter (comp not nil?) (map landscape (position :adj))))
+
 (defn graphed [coord-map]
   (reduce (fn [cm [coords value]]
-            (assoc cm coords (into {:value value} {:neighbors (neighbors coords)})))
+            (assoc cm coords (into {:value value} {:adj (adj-coords coords)})))
           {}
           coord-map))
 

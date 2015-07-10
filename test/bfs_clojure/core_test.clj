@@ -23,9 +23,13 @@
 ;super simple landscape -- 2 lines with 1 space and 1 "#" in each line
 (deftest parsing-a-landscape
   (testing "it parses lines of text into a landscape graph structure, returning the origin"
-    ))
+    (let [ls (parse-landscape "ab\ncd")]
+      (is (= 4 (count ls)))
+      (is (= #{[0 0] [1 0] [0 1] [1 1]} (into #{} (keys ls))))
+      (is (= "d" ((ls [1 1]) :value)))
+      )))
 
-;; (deftest finding-start-position
+;; (deftest finding-position
 ;;   (testing "it finds coords for start-position in grid"
 ;;     (let [ls (parse-landscape (landscape-file "easiest.txt"))]
 ;;       (is (= [1 1] (start-pos ls))))))
@@ -33,8 +37,13 @@
 ; # -- [1,0]
 ;#S# -- [0,1 1,1(start) 2,1]
 ; #  -- [1,2]
-(deftest finding-neighbors-coord
+(deftest finding-adj-coords
   (testing "it finds north,east,south,west neighbors"
-    (is (= #{[1 0] [2 1] [1 2] [0 1]} (neighbors [1 1])))))
+    (is (= #{[1 0] [2 1] [1 2] [0 1]} (adj-coords [1 1])))))
 
+(deftest finding-neighbors
+  (testing "it finds neighbor positions that are present in the map"
+    (let [ls (parse-landscape "ab\ncd")]
+      (is (= 2 (count (neighbors (ls [0 0]) ls))))
+      )))
 
