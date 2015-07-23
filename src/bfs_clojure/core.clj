@@ -1,4 +1,5 @@
-(ns bfs-clojure.core)
+(ns bfs-clojure.core
+  (:require [clojure.set :refer [difference]]))
 
 (defn coords [rows]
   "take seq of strings representing map rows
@@ -71,14 +72,18 @@
       (recur (conj path (originations curr)) (originations curr))
       (reverse (map :coords path)))))
 
+(defn queueable [current queued landscape]
+  (let [neighbs (set (neighbors current landscape))
+        queued (set (keys queued))]
+    (difference  neighbs queued)))
+
 (defn path [start finish landscape]
   "Search the landscape for a path from the start position to finish position. Returns path as sequence of [x y] coord pairs"
   (loop [curr start queue [] paths {start nil}]
     (if (= finish curr)
       (construct-path start finish paths)
-      (let [queueable (reject (partial contains? paths) (neighbors curr landscape))
+      (let [queueable (queueable curr paths landscape)
             queue (into queue queueable)]
         (recur (first queue)
                (vec (rest queue))
-               (into paths (for [n queueable] {n curr}))))
-      )))
+               (into paths (for [n queueable] {n curr})))))))
