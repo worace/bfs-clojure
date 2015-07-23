@@ -4,7 +4,8 @@
 (defn coords [rows]
   "take seq of strings representing map rows
    and parse them into sequence of coordinate, position-value
-   tuples. e.g (([0 0] 'a') ([1 0] 'b'))"
+   tuples. e.g (([0 0] 'a') ([1 0] 'b'))
+   Use mapcat identity as a 1-level flatten"
   (mapcat identity
           (map-indexed (fn [y row]
                          (map-indexed
@@ -14,8 +15,7 @@
 
 (defn coord-map [coords]
   "take seq of coordinate-value tuples and return
-   map of [x y] -> 'value' coords. Use mapcat identity as
-   a 1-level flatten"
+   map of [x y] -> 'value' coords."
   (apply hash-map (mapcat identity coords)))
 
 
