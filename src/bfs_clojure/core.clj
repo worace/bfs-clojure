@@ -1,18 +1,6 @@
 (ns bfs-clojure.core
   (:require [clojure.set :refer [difference]]))
 
-(defn coords [rows]
-  "take seq of strings representing map rows
-   and parse them into sequence of coordinate, position-value
-   tuples. e.g (([0 0] 'a') ([1 0] 'b'))
-   Use mapcat identity as a 1-level flatten"
-  (mapcat identity
-          (map-indexed (fn [y row]
-                         (map-indexed
-                          (fn [x char] [[x y] (str char)])
-                          row))
-                       rows)))
-
 (defn neighbors [position landscape]
   "Retrieve valid positions from landscape based on adjacent
    coords of provided position. Removing nils solves positions at
