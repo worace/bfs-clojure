@@ -37,7 +37,7 @@
    containing :value and :adj keys. E.G:
    {[0 0] 'a'} -> {[0 0] {:value 'a' :adj #{[1 0] [0 1]...}}}"
   (reduce (fn [cm [coords value]]
-            (assoc cm coords (into {:value value} {:adj (adj-coords coords)})))
+            (assoc cm coords (into {:value value} {:adj (adj-coords coords) :coords coords})))
           {}
           coord-map))
 
@@ -52,7 +52,6 @@
    :value and :adj(acent coords)"
   (graphed (coord-map (coords (lines landscape-string)))))
 
-
 (defn find-value [value, landscape]
   "Find position containing provided value in the landscape.
    Using last to get the nested map out of the coord, map tuple
@@ -61,8 +60,25 @@
                    (= value (pos :value)))
                  landscape))))
 
+(defn reject [fn coll] (filter (comp not fn) coll))
+
+(defn construct-path [start finish originations]
+  "Takes a map of position => orig-position (i.e. whence did i reach this position)
+   and creates a vector of [x y] coords indicating all the positions in the path
+   from start to finish"
+  (loop [path [finish] curr finish]
+    (if (originations curr)
+      (recur (conj path (originations curr)) (originations curr))
+      (reverse (map :coords path)))))
+
 (defn path [start finish landscape]
-  "Search the landscape for a path from the start position
-   to finish position. Returns path as sequence of [x y] coord
-   pairs"
-  nil)
+  "Search the landscape for a path from the start position to finish position. Returns path as sequence of [x y] coord pairs"
+  (loop [curr start queue [] paths {start nil}]
+    (if (= finish curr)
+      (construct-path start finish paths)
+      (let [queueable (reject (partial contains? paths) (neighbors curr landscape))
+            queue (into queue queueable)]
+        (recur (first queue)
+               (vec (rest queue))
+               (into paths (for [n queueable] {n curr}))))
+      )))

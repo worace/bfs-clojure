@@ -45,9 +45,15 @@
       (is (= "S" ((find-value "S" ls) :value)))
       (is (nil? (find-value "A" ls))))))
 
+(deftest neighbors-of-start
+  (let [ls (parse-landscape (landscape-file "easiest.txt"))
+        start (find-value "S" ls)]
+    (is (contains? (set (map :value (neighbors start ls)) ) "F"))))
+
 (deftest searching-simple-landscape
   (testing "finds sequential path from start position to desired target"
     (let [ls (parse-landscape (landscape-file "easiest.txt"))
           start (find-value "S" ls)
           finish (find-value "F" ls)]
-      (is (= [[2 1]] (path start finish ls))))))
+      ;;full path including start and finish
+      (is (= [[1 1] [2 1]] (path start finish ls))))))
